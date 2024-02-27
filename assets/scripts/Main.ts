@@ -1,24 +1,27 @@
 import { _decorator, CCBoolean, CCFloat, Component, instantiate, MeshCollider, Node, Prefab, sp, v2, Vec2 } from 'cc';
+import Perlin from './utils/Perlin';
 const { ccclass, property } = _decorator;
 
-let ws: WebSocket;
 
 @ccclass('Main')
 export class Main extends Component {
 
     @property(Prefab)
     hexTilePrefab: Prefab;
-
+    @property(Vec2)
+    gridSize: Vec2 = new Vec2(10, 10);
     @property(CCFloat)
     spaceTile: number = 0;
-
     @property(CCFloat)
     scaleTile: number = 1;
-
     @property(CCFloat)
-    noiseFrequency: number = 100;
+    rangeMin: number = 0;
     @property(CCFloat)
-    noiseThreshold: number = 0.5;
+    rangeMax: number = 1;
+    @property(CCFloat)
+    frequency: number = 100;
+    @property(CCFloat)
+    threshold: number = 0;
 
     private _resetView: boolean;
     public get resetView(): boolean {
@@ -27,47 +30,30 @@ export class Main extends Component {
     @property({ type: CCBoolean })
     public set resetView(value: boolean) {
         this._resetView = false;
-        this.generate(8, 8);
+        // this.generate(8, 8);
+        this.perlinNoise.resetOutputRange();
+        this.perlinNoise.setOutputRange(this.rangeMin, this.rangeMax);
+        this.generate(this.gridSize.y, this.gridSize.x);
     }
 
-    dataSendtoServer: { id: string, x: number, y: number }[] = []
+    perlinNoise = new Perlin();
+
+
 
     protected onLoad(): void {
-        ws = new WebSocket('ws://localhost:1313');
-        ws.addEventListener('open', (ev: Event) => {
-            console.log('Open Socket', ev);
-            this.generate(24, 24);
-            ws.send(JSON.stringify(this.dataSendtoServer));
-
-        })
-        ws.addEventListener('close', (ev: Event) => {
-            console.log('Close Socket', ev);
-        })
-        ws.addEventListener('error', (ev: Event) => {
-            console.log('Error Socket', ev);
-        })
-        ws.addEventListener('message', (ev: MessageEvent) => {
-            const data : {id: string, noise: number}[] = JSON.parse(ev.data);
-            if (data) {
-                data.forEach(value => {
-                    const child = this.node.getChildByUuid(value.id)
-                    if (child) {
-                        if (parseFloat(value.noise.toString()) < this.noiseThreshold) {
-                            child.removeFromParent();
-                        }
-                    }
-                })
-                
-            }
-        })
+        // Perlin.frequency = 100;                  
+        this.perlinNoise.resetOutputRange();
+        // this.perlinNoise.scale = this.range;
+        this.perlinNoise.setOutputRange(this.rangeMin, this.rangeMax);
+        // this.generate(this.gridSize.y, this.gridSize.x);
     }
 
-    private generate(row: number, col: number) {
+    private generate(cols: number, rows: number) {
         this.node.removeAllChildren();
         let indexRow: number = 0;
         let indexCol: number = 0;
 
-        while (indexRow < row && indexCol < col) {
+        while (indexRow < rows && indexCol < cols) {
             let hexTileNode = instantiate(this.hexTilePrefab);
             this.node.addChild(hexTileNode);
             hexTileNode.setScale(this.scaleTile, this.scaleTile, this.scaleTile);
@@ -80,19 +66,14 @@ export class Main extends Component {
                 (size.x + this.spaceTile) * indexRow * 3 / 4,
                 (size.y + this.spaceTile) * indexCol + (indexRow % 2 === 1 ? (size.y + this.spaceTile) * 0.5 : 0)
             );
-            hexTileNode.setPosition(position.x, 0, position.y);
-            this.dataSendtoServer.push({
-                id: hexTileNode.uuid,
-                x: position.x / this.noiseFrequency,
-                y: position.y / this.noiseFrequency
-            })
-            // let noise = this._simplexNoise.noise(position.x / this.noiseFrequency, position.y / this.noiseFrequency)
-            // let isWater = noise < this.noiseThreshold;
-            // if (isWater) {
-            //     this.node.removeChild(hexTileNode)
-            // }
+            let noise = this.perlinNoise.getValue2D(position.x / this.frequency, position.y / this.frequency);
+            hexTileNode.setPosition(position.x - rows * size.x * 3 / 8, 0, position.y - cols * size.y / 2);
+            let isWater = noise < this.threshold;
+            if (isWater) {
+                this.node.removeChild(hexTileNode)
+            }
             indexRow++;
-            if (indexRow >= row) {
+            if (indexRow >= rows) {
                 indexRow = 0;
                 indexCol++;
             }
