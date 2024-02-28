@@ -47,7 +47,7 @@ export class Main extends Component {
         this.perlinNoise.resetOutputRange();
         // this.perlinNoise.scale = this.range;
         this.perlinNoise.setOutputRange(this.rangeMin, this.rangeMax);
-        // this.generate(this.gridSize.y, this.gridSize.x);
+        this.generate(this.gridSize.y * 3, this.gridSize.x * 3);
     }
 
     private generate(cols: number, rows: number) {
@@ -56,29 +56,33 @@ export class Main extends Component {
         let indexCol: number = 0;
 
         while (indexRow < rows && indexCol < cols) {
-            let hexTileNode = instantiate(this.hexTilePrefab);
-            this.mapParentNode.addChild(hexTileNode);
-            hexTileNode.setScale(this.scaleTile, this.scaleTile, this.scaleTile);
-            const collider: MeshCollider = hexTileNode.getComponentInChildren(MeshCollider);
-            const size = v2(
-                collider.worldBounds.halfExtents.x * 2 * this.scaleTile,
-                collider.worldBounds.halfExtents.z * 2 * this.scaleTile
-            )
-            const position = new Vec2(
-                (size.x + this.spaceTile) * indexRow * 3 / 4,
-                (size.y + this.spaceTile) * indexCol + (indexRow % 2 === 1 ? (size.y + this.spaceTile) * 0.5 : 0)
-            );
-            let noise = this.perlinNoise.getValue2D(position.x / this.frequency, position.y / this.frequency);
-            hexTileNode.setPosition(position.x - rows * size.x * 3 / 8, 0, position.y - cols * size.y / 2);
-            let isWater = noise < this.threshold;
-            if (isWater) {
-                this.mapParentNode.removeChild(hexTileNode)
-            }
+            this.addTile(indexRow, indexCol);
             indexRow++;
             if (indexRow >= rows) {
                 indexRow = 0;
                 indexCol++;
             }
+        }
+    }
+
+    private addTile(col: number, row: number) {
+        let hexTileNode = instantiate(this.hexTilePrefab);
+        this.mapParentNode.addChild(hexTileNode);
+        hexTileNode.setScale(this.scaleTile, this.scaleTile, this.scaleTile);
+        const collider: MeshCollider = hexTileNode.getComponentInChildren(MeshCollider);
+        const size = v2(
+            collider.worldBounds.halfExtents.x * 2 * this.scaleTile,
+            collider.worldBounds.halfExtents.z * 2 * this.scaleTile
+        )
+        const position = new Vec2(
+            (size.x + this.spaceTile) * row * 3 / 4,
+            (size.y + this.spaceTile) * col + (row % 2 === 1 ? (size.y + this.spaceTile) * 0.5 : 0)
+        );
+        let noise = this.perlinNoise.getValue2D(position.x / this.frequency, position.y / this.frequency);
+        hexTileNode.setPosition(position.x, 0, position.y);
+        let isWater = noise < this.threshold;
+        if (isWater) {
+            this.mapParentNode.removeChild(hexTileNode)
         }
     }
 
