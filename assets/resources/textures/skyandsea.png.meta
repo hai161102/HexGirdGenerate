@@ -1,0 +1,46 @@
+{
+  "ver": "1.0.26",
+  "importer": "image",
+  "imported": true,
+  "uuid": "37f0c5d2-595a-4236-84dc-abd5d2892230",
+  "files": [
+    ".json",
+    ".png"
+  ],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "37f0c5d2-595a-4236-84dc-abd5d2892230@6c48a",
+      "displayName": "skyandsea",
+      "id": "6c48a",
+      "name": "texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "37f0c5d2-595a-4236-84dc-abd5d2892230",
+        "visible": false
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "fixAlphaTransparencyArtifacts": true,
+    "hasAlpha": false,
+    "type": "texture",
+    "redirect": "37f0c5d2-595a-4236-84dc-abd5d2892230@6c48a",
+    "compressSettings": {
+      "useCompressTexture": false
+    },
+    "isRGBE": false
+  }
+}

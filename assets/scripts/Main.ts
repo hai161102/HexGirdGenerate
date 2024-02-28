@@ -1,11 +1,13 @@
 import { _decorator, CCBoolean, CCFloat, Component, instantiate, MeshCollider, Node, Prefab, sp, v2, Vec2 } from 'cc';
-import Perlin from './utils/Perlin';
+import Perlin from './utils/noises/Perlin';
 const { ccclass, property } = _decorator;
 
 
 @ccclass('Main')
 export class Main extends Component {
 
+    @property(Node)
+    mapParentNode : Node;
     @property(Prefab)
     hexTilePrefab: Prefab;
     @property(Vec2)
@@ -49,13 +51,13 @@ export class Main extends Component {
     }
 
     private generate(cols: number, rows: number) {
-        this.node.removeAllChildren();
+        this.mapParentNode.removeAllChildren();
         let indexRow: number = 0;
         let indexCol: number = 0;
 
         while (indexRow < rows && indexCol < cols) {
             let hexTileNode = instantiate(this.hexTilePrefab);
-            this.node.addChild(hexTileNode);
+            this.mapParentNode.addChild(hexTileNode);
             hexTileNode.setScale(this.scaleTile, this.scaleTile, this.scaleTile);
             const collider: MeshCollider = hexTileNode.getComponentInChildren(MeshCollider);
             const size = v2(
@@ -70,7 +72,7 @@ export class Main extends Component {
             hexTileNode.setPosition(position.x - rows * size.x * 3 / 8, 0, position.y - cols * size.y / 2);
             let isWater = noise < this.threshold;
             if (isWater) {
-                this.node.removeChild(hexTileNode)
+                this.mapParentNode.removeChild(hexTileNode)
             }
             indexRow++;
             if (indexRow >= rows) {
